@@ -1,0 +1,297 @@
+# Casino Event Processing System Documentation
+
+## Architecture Overview
+
+```
+                   ┌─────────────┐
+                   │  Generator  │
+                   └──────┬──────┘
+                          │
+                          ▼
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│   Postgres  │◄───┤  Subscriber  │◄───┤  Publisher  │
+└─────────────┘    └──────┬───────┘    └─────────────┘
+                          │
+      ┌─────────────┬─────┴────┬─────────────┐
+      ▼             ▼          ▼             ▼
+┌──────────┐  ┌─────────┐ ┌─────────┐  ┌─────────┐
+│ Currency │  │ Player  │ │  Game   │  │  Desc   │
+│ Enricher │  │Enricher │ │Enricher │  │Enricher │
+└──────────┘  └─────────┘ └─────────┘  └─────────┘
+```
+
+## Components
+
+### Publisher
+- Receives events from the generator
+- Publishes to NATS topic "casino.events"
+- Handles graceful shutdown
+
+### Subscriber
+- Subscribes to "casino.events"
+- Runs enrichment pipeline
+- Publishes enriched events to "casino.events.enriched"
+- Collects metrics
+
+### Enrichers
+
+#### Currency Enricher
+- Converts amounts to EUR using exchangerate.host API
+- Handles smallest units:
+  - USD/EUR: cents (100 cents = 1.00)
+  - BTC: satoshis (100,000,000 satoshis = 1.00 BTC)
+- Caches rates for 1 minute
+- Rate limited to 1 request/minute
+- Graceful error handling
+
+#### Player Enricher
+- Looks up player data from Postgres
+- No caching (per requirements)
+- Handles missing players gracefully
+- Adds email and last_signed_in_at
+
+#### Description Enricher
+- Generates human-friendly descriptions
+- Currency-specific formatting:
+  - USD/EUR: 2 decimal places
+  - BTC: 3 decimal places
+- Uses game title mapping
+
+## Setup Instructions
+
+1. Start required services:
+```bash
+docker-compose up -d
+```
+
+2. Run migrations:
+```bash
+make migrate
+```
+
+3. Start the subscriber:
+```bash
+go run cmd/subscriber/main.go
+```
+
+4. Start the publisher:
+```bash
+go run cmd/publisher/main.go
+```
+
+## Testing
+
+```bash
+# Run unit tests
+go test -v -short ./...
+
+# Run integration tests
+go test -v ./...
+```
+
+## Metrics
+
+The system collects the following metrics:
+- Events Processed: Total events received
+- Events Enriched: Successfully enriched events
+- Enrichment Errors: Failed enrichment attempts
+- Processing Time: Average processing time per event
+
+## Example Events
+
+### Input Event
+```json
+{
+  "id": 1,
+  "player_id": 123,
+  "game_id": 100,
+  "type": "bet",
+  "amount": 1000,
+  "currency": "USD",
+  "has_won": true,
+  "created_at": "2024-02-24T10:48:10Z"
+}
+```
+
+### Enriched Event
+```json
+{
+  "id": 1,
+  "player_id": 123,
+  "game_id": 100,
+  "type": "bet",
+  "amount": 1000,
+  "currency": "USD",
+  "has_won": true,
+  "created_at": "2024-02-24T10:48:10Z",
+  "amount_eur": 910,
+  "player": {
+    "email": "player123@example.com",
+    "last_signed_in_at": "2024-02-24T10:48:10Z"
+  },
+  "description": "Player 123 won USD 10.00 in Book of Dead"
+}
+```
+
+## Error Handling
+
+The system implements graceful error handling:
+1. Individual enricher failures don't stop processing
+2. Failed enrichments are logged and counted
+3. Missing data is handled gracefully:
+   - Missing player data: logged, continues processing
+   - Missing exchange rates: retries with backoff
+   - Missing game titles: uses default format
+
+## Performance Considerations
+
+1. Currency Conversion
+   - Caches rates for 1 minute
+   - Rate limited to avoid API throttling
+   - Uses atomic operations for thread safety
+
+2. Player Data
+   - No caching per requirements
+   - Uses prepared statements
+   - Connection pooling via sql.DB
+
+3. Description Generation
+   - In-memory game title mapping
+   - Efficient string formatting
+   - No external dependencies
+
+## Monitoring
+
+The system provides metrics for monitoring:
+```go
+type Metrics struct {
+    EventsProcessed   uint64
+    EventsEnriched    uint64
+    EnrichmentErrors  uint64
+    ProcessingTimeMs  uint64
+}
+```
+
+These metrics can be used to:
+1. Monitor system health
+2. Track error rates
+3. Measure performance
+4. Alert on issues
+
+### Health Checks
+
+The system provides HTTP endpoints for monitoring:
+
+```bash
+# Check system health
+curl http://localhost:8080/health
+
+# Get metrics
+curl http://localhost:8080/metrics
+```
+
+Example health check response:
+```json
+{
+  "healthy": true,
+  "components": {
+    "nats": "connected",
+    "database": "connected"
+  },
+  "timestamp": "2024-02-24T12:34:56Z"
+}
+```
+
+### Metrics
+
+The system collects the following metrics:
+- Events Processed: Total events received
+- Events Enriched: Successfully enriched events
+- Enrichment Errors: Failed enrichment attempts
+- Processing Time: Average processing time per event
+
+### Aggregates
+
+The system maintains real-time aggregates:
+- Total bets in EUR
+- Total deposits in EUR
+- Total wins in EUR
+- Unique active users
+- Active games and players
+
+Access aggregates via HTTP:
+```bash
+curl http://localhost:8080/aggregates
+```
+
+Example response:
+```json
+{
+  "TotalBetsEUR": 15000,
+  "TotalDepositsEUR": 50000,
+  "TotalWinsEUR": 12000,
+  "UniqueUsers": 42,
+  "ActiveGames": {
+    "100": 5,
+    "101": 3
+  }
+}
+```
+
+### Materialized Data
+
+The system materializes real-time statistics:
+- Total number of events
+- Events per minute
+- Events per second (moving average)
+- Top players by:
+  - Number of bets
+  - Number of wins
+  - Total deposits in EUR
+
+Access via HTTP:
+```bash
+curl http://localhost:8080/materialized
+```
+
+Example response:
+```json
+{
+  "events_total": 12345,
+  "events_per_minute": 123.45,
+  "events_per_second_moving_average": 3.12,
+  "top_player_bets": {
+    "id": 10,
+    "count": 150
+  },
+  "top_player_wins": {
+    "id": 11,
+    "count": 50
+  },
+  "top_player_deposits": {
+    "id": 12,
+    "count": 15000
+  }
+}
+```
+
+### Metrics Visualization
+
+The system provides metrics visualization through Grafana:
+
+1. Access Grafana UI: http://localhost:3000
+   - Username: admin
+   - Password: admin
+
+2. Available dashboards:
+   - Casino Events
+     - Events per Second
+     - Total Events Processed
+     - Top Players
+     - Error Rates
+
+3. Metrics are collected via Prometheus:
+   - Event processing metrics
+   - Player statistics
+   - System health
+   - Performance metrics 

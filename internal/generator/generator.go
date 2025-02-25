@@ -1,69 +1,66 @@
 package generator
 
 import (
-	"context"
-	"math/rand"
-	"time"
-
-	"github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
+    "context"
+    "math/rand"
+    "time"
+    "github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
 )
 
 func Generate(ctx context.Context) <-chan casino.Event {
-	eventCh := make(chan casino.Event)
-	var id int
+    eventCh := make(chan casino.Event)
+    var id int
 
-	go func() {
-		defer close(eventCh)
+    go func() {
+        defer close(eventCh)
 
-		for {
-			id++
+        for {
+            id++
 
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				eventCh <- generate(id)
-			}
+            select {
+            case <-ctx.Done():
+                return
+            default:
+                eventCh <- generate(id)
+            }
+        }
+    }()
 
-			time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
-		}
-	}()
-
-	return eventCh
+    return eventCh
 }
 
 func generate(id int) casino.Event {
-	amount, currency := randomAmountCurrency()
+    amount, currency := randomAmountCurrency()
 
-	return casino.Event{
-		ID:        id,
-		PlayerID:  10 + rand.Intn(10),
-		GameID:    100 + rand.Intn(10),
-		Type:      randomType(),
-		Amount:    amount,
-		Currency:  currency,
-		HasWon:    randomHasWon(),
-		CreatedAt: time.Now(),
-	}
+    return casino.Event{
+        ID:        id,
+        PlayerID:  10 + rand.Intn(10),
+        GameID:    100 + rand.Intn(10),
+        Type:      randomType(),
+        Amount:    amount,
+        Currency:  currency,
+        HasWon:    randomHasWon(),
+        CreatedAt: time.Now(),
+    }
 }
 
 func randomType() string {
-	return casino.EventTypes[rand.Intn(len(casino.EventTypes))]
+    return casino.EventTypes[rand.Intn(len(casino.EventTypes))]
 }
 
 func randomAmountCurrency() (amount int, currency string) {
-	currency = casino.Currencies[rand.Intn(len(casino.Currencies))]
+    currency = casino.Currencies[rand.Intn(len(casino.Currencies))]
 
-	switch currency {
-	case "BTC":
-		amount = rand.Intn(1e5)
-	default:
-		amount = rand.Intn(2000)
-	}
+    switch currency {
+    case "BTC":
+        amount = rand.Intn(1e5)
+    default:
+        amount = rand.Intn(2000)
+    }
 
-	return
+    return
 }
 
 func randomHasWon() bool {
-	return rand.Intn(100) < 5
-}
+    return rand.Intn(100) < 5
+} 

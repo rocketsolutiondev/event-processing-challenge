@@ -1,0 +1,52 @@
+# Binaries and objects
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+
+# Go specific
+*.o
+*.a
+*.log
+
+# IDE specific
+.idea/
+.vscode/
+.history/
+*.swp
+*.swo
+.DS_Store
+
+# Dependencies
+vendor/
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+tmp/
+temp/
+
+# Debug files
+debug/
+
+# Database files
+*.db
+*.sqlite
+
+# Generated files
+*.gen.go
+
+# Test coverage
+coverage.txt
+coverage.html
+
+# Project specific
+dist/ 
+
+.env

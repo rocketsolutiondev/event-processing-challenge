@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'casino'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+      # - targets: ['host.docker.internal:8080']  # For Docker Desktop/Mac/Windows 
+    metrics_path: '/metrics'
+    scrape_timeout: 10s 
