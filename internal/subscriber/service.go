@@ -12,42 +12,16 @@ import (
     "github.com/Bitstarz-eng/event-processing-challenge/internal/casino"
     "github.com/Bitstarz-eng/event-processing-challenge/internal/metrics"
     "github.com/Bitstarz-eng/event-processing-challenge/internal/health"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
     "github.com/Bitstarz-eng/event-processing-challenge/internal/enricher/player"
     "github.com/Bitstarz-eng/event-processing-challenge/internal/enricher/exchange"
     "github.com/Bitstarz-eng/event-processing-challenge/internal/aggregator"
     "github.com/Bitstarz-eng/event-processing-challenge/internal/materializer"
-    "github.com/prometheus/client_golang/prometheus"
-    "github.com/prometheus/client_golang/prometheus/promauto"
-    "github.com/prometheus/client_golang/prometheus/promhttp"
     "github.com/Bitstarz-eng/event-processing-challenge/internal/config"
 )
 
 const (
     EventsTopic = "casino.events"  // Match the topic name from publisher
-)
-
-var (
-    databaseConnected = promauto.NewGauge(prometheus.GaugeOpts{
-        Name: "casino_database_connected",
-        Help: "Database connection status (1 = connected, 0 = disconnected)",
-    })
-    natsConnected = promauto.NewGauge(prometheus.GaugeOpts{
-        Name: "casino_nats_connected",
-        Help: "NATS connection status (1 = connected, 0 = disconnected)",
-    })
-    healthCheckTimestamp = promauto.NewGauge(prometheus.GaugeOpts{
-        Name: "casino_health_check_timestamp_seconds",
-        Help: "Timestamp of last successful health check",
-    })
-    healthCheckDuration = promauto.NewHistogram(prometheus.HistogramOpts{
-        Name: "casino_health_check_duration_seconds",
-        Help: "Duration of health check in seconds",
-        Buckets: prometheus.LinearBuckets(0.001, 0.001, 10), // 1ms to 10ms
-    })
-    componentStatus = promauto.NewGaugeVec(prometheus.GaugeOpts{
-        Name: "casino_component_status",
-        Help: "Status of each component (1 = healthy, 0 = unhealthy)",
-    }, []string{"component", "status"})
 )
 
 type Service struct {
@@ -96,8 +70,6 @@ func New(natsURL string, enrichers ...Enricher) (*Service, error) {
 func (s *Service) Start(ctx context.Context) error {
     // Set initial connection status
     log.Println("Setting initial metrics")
-    databaseConnected.Set(1)
-    natsConnected.Set(1)
     metrics.ServiceUp.Set(1)
     log.Println("Initial metrics set")
 
@@ -231,7 +203,7 @@ func (s *Service) metricsHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Service) updateHealthMetrics(ctx context.Context) {
     start := time.Now()
     defer func() {
-        healthCheckDuration.Observe(time.Since(start).Seconds())
+        metrics.HealthCheckDuration.Observe(time.Since(start).Seconds())
     }()
 
     // Get health status
@@ -246,27 +218,23 @@ func (s *Service) updateHealthMetrics(ctx context.Context) {
 
     // Update database status
     if status.Components["database"] == "connected" {
-        databaseConnected.Set(1)
-        componentStatus.WithLabelValues("database", "connected").Set(1)
-        componentStatus.WithLabelValues("database", "error").Set(0)
+        metrics.ComponentStatus.WithLabelValues("database", "connected").Set(1)
+        metrics.ComponentStatus.WithLabelValues("database", "error").Set(0)
     } else {
-        databaseConnected.Set(0)
-        componentStatus.WithLabelValues("database", "connected").Set(0)
-        componentStatus.WithLabelValues("database", "error").Set(1)
+        metrics.ComponentStatus.WithLabelValues("database", "connected").Set(0)
+        metrics.ComponentStatus.WithLabelValues("database", "error").Set(1)
     }
 
     // Update NATS status
     if status.Components["nats"] == "connected" {
-        natsConnected.Set(1)
-        componentStatus.WithLabelValues("nats", "connected").Set(1)
-        componentStatus.WithLabelValues("nats", "error").Set(0)
+        metrics.ComponentStatus.WithLabelValues("nats", "connected").Set(1)
+        metrics.ComponentStatus.WithLabelValues("nats", "error").Set(0)
     } else {
-        natsConnected.Set(0)
-        componentStatus.WithLabelValues("nats", "connected").Set(0)
-        componentStatus.WithLabelValues("nats", "error").Set(1)
+        metrics.ComponentStatus.WithLabelValues("nats", "connected").Set(0)
+        metrics.ComponentStatus.WithLabelValues("nats", "error").Set(1)
     }
 
-    healthCheckTimestamp.Set(float64(status.Timestamp.Unix()))
+    metrics.HealthCheckTimestamp.Set(float64(status.Timestamp.Unix()))
 }
 
 func (s *Service) healthHandler(w http.ResponseWriter, r *http.Request) {

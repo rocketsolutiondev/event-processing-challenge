@@ -9,52 +9,15 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        }
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 8,
-        "x": 0,
-        "y": 0
-      },
-      "id": 12,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
+      "title": "System Health",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
       "title": "Component Status",
       "type": "stat",
+      "gridPos": { "h": 3, "w": 8, "x": 0, "y": 1 },
       "targets": [
         {
           "expr": "casino_database_connected",
@@ -68,144 +31,40 @@
           "expr": "casino_service_up",
           "legendFormat": "Service"
         }
-      ]
+      ],
+      "options": {
+        "colorMode": "background",
+        "textMode": "value_and_name"
+      }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "description": "Last health check timestamp",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "dateTimeFromNow"
-        }
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 8,
-        "x": 8,
-        "y": 0
-      },
-      "id": 13,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
       "title": "Last Health Check",
       "type": "stat",
+      "gridPos": { "h": 3, "w": 8, "x": 8, "y": 1 },
       "targets": [
         {
           "expr": "casino_health_check_timestamp_seconds * 1000",
           "legendFormat": "Last Check"
         }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
+      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "dateTimeFromNow",
+          "decimals": 0,
+          "mappings": [],
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "ms"
-        }
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 8,
-        "x": 16,
-        "y": 0
-      },
-      "id": 14,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "title": "Health Check Latency",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "rate(casino_health_check_duration_seconds[1m]) * 1000",
-          "legendFormat": "ms/check"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": -60 },
+              { "color": "green", "value": -10 }
             ]
           }
         }
       },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 0,
-        "y": 4
-      },
-      "id": 1,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -217,582 +76,114 @@
           "values": false
         },
         "textMode": "auto"
-      },
-      "title": "Service Health",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "up{job=\"casino\"}"
-        }
-      ]
+      }
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          }
-        }
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 4
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "title": "Events Per Second",
+      "title": "Event Processing",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 4 }
+    },
+    {
+      "title": "Events Per Minute",
       "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 },
       "targets": [
         {
-          "expr": "rate(casino_events_processed_total[1m])",
-          "legendFormat": "Events/sec"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          }
-        }
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 12,
-        "y": 4
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "title": "Error Rate",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "rate(casino_enrichment_errors_total[1m])",
-          "legendFormat": "Errors/min"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "ms"
-        }
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
-        "y": 4
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "title": "Processing Time",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "rate(casino_event_processing_duration_seconds[1m]) * 1000",
-          "legendFormat": "ms/event"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          }
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": ["lastNotNull", "max", "mean"],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(casino_events_processed_total[1m])",
+          "expr": "rate(casino_events_processed_total[1m]) * 60",
           "legendFormat": "Events/min"
-        },
-        {
-          "expr": "rate(casino_enrichment_errors_total[1m])",
-          "legendFormat": "Errors/min"
         }
       ],
-      "title": "Event Processing Overview",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
+          "unit": "events/min",
+          "min": 0
         }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 12
-      },
-      "id": 6,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "sortBy": "value",
-        "sortDesc": true,
-        "textMode": "auto"
-      },
-      "title": "Top Players by Bets",
-      "type": "table",
+      }
+    },
+    {
+      "title": "System Metrics",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 }
+    },
+    {
+      "title": "Resource Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
       "targets": [
         {
-          "expr": "sort_desc(casino_top_player_bets)",
-          "format": "table",
-          "instant": true
-        }
-      ],
-      "transformations": [
+          "expr": "process_resident_memory_bytes / 1024 / 1024",
+          "legendFormat": "Memory (MB)"
+        },
         {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true
-            },
-            "renameByName": {
-              "player_id": "Player ID",
-              "Value": "Total Bets"
-            }
-          }
+          "expr": "rate(process_cpu_seconds_total[1m])",
+          "legendFormat": "CPU Usage"
         }
       ]
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 12
-      },
-      "id": 7,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "sortBy": "value",
-        "sortDesc": true,
-        "textMode": "auto"
-      },
-      "title": "Top Players by Wins",
-      "type": "table",
-      "targets": [
-        {
-          "expr": "sort_desc(casino_top_player_wins)",
-          "format": "table",
-          "instant": true
-        }
-      ],
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true
-            },
-            "renameByName": {
-              "player_id": "Player ID",
-              "Value": "Total Wins"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "currencyEUR"
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 12
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "sortBy": "value",
-        "sortDesc": true,
-        "textMode": "auto"
-      },
-      "title": "Top Players by Deposits",
-      "type": "table",
-      "targets": [
-        {
-          "expr": "sort_desc(casino_top_player_deposits_eur)",
-          "format": "table",
-          "instant": true
-        }
-      ],
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "instance": true,
-              "job": true
-            },
-            "renameByName": {
-              "player_id": "Player ID",
-              "Value": "Total Deposits (EUR)"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          }
-        }
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 24,
-        "x": 0,
-        "y": 4
-      },
-      "id": 10,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "title": "Component Health",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "up{job=\"casino\"}",
-          "legendFormat": "Service"
-        },
-        {
-          "expr": "casino_database_connected",
-          "legendFormat": "Database"
-        },
-        {
-          "expr": "casino_nats_connected",
-          "legendFormat": "NATS"
-        },
-        {
-          "expr": "casino_service_up",
-          "legendFormat": "Service"
-        }
-      ]
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "displayMode": "auto",
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 20
-      },
-      "id": 9,
       "title": "Player Statistics",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 }
+    },
+    {
+      "title": "Player Overview",
       "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 23 },
       "targets": [
         {
           "expr": "casino_top_player_bets",
           "format": "table",
           "instant": true,
-          "refId": "Bets"
+          "legendFormat": "Bets"
         },
         {
           "expr": "casino_top_player_wins",
           "format": "table",
           "instant": true,
-          "refId": "Wins"
+          "legendFormat": "Wins"
         },
         {
           "expr": "casino_top_player_deposits_eur",
           "format": "table",
           "instant": true,
-          "refId": "Deposits"
+          "legendFormat": "Deposits"
         }
       ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "right",
+            "cellOptions": {
+              "type": "number"
+            },
+            "inspect": false
+          },
+          "decimals": 0,
+          "unit": "locale"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Deposits (EUR)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              }
+            ]
+          }
+        ]
+      },
       "transformations": [
         {
           "id": "joinByField",
           "options": {
-            "byField": "player_id",
-            "mode": "outer"
+            "byField": "player_id"
           }
         },
         {
@@ -804,46 +195,14 @@
               "instance": true,
               "job": true
             },
+            "indexByName": {},
             "renameByName": {
               "player_id": "Player ID",
-              "Value #A": "Total Bets",
-              "Value #B": "Total Wins",
-              "Value #C": "Total Deposits (EUR)"
+              "Value #A": "Bets",
+              "Value #B": "Wins",
+              "Value #C": "Deposits (EUR)"
             }
           }
-        }
-      ]
-    },
-    {
-      "title": "Events by Type",
-      "type": "piechart",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "sum by (type) (casino_events_by_type_total)",
-          "legendFormat": "{{type}}"
-        }
-      ]
-    },
-    {
-      "title": "Top Players",
-      "type": "bargauge",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "topk(5, sum by (player_id) (casino_events_by_player_total))",
-          "legendFormat": "Player {{player_id}}"
-        }
-      ]
-    },
-    {
-      "title": "Top Games",
-      "type": "table",
-      "datasource": "Prometheus",
-      "targets": [
-        {
-          "expr": "topk(5, sum by (game_id, game_title) (casino_events_by_game_total))",
-          "legendFormat": "{{game_title}}"
         }
       ]
     }
@@ -862,6 +221,6 @@
   "timepicker": {},
   "timezone": "",
   "title": "Casino Events",
-  "version": 0,
+  "version": 1,
   "weekStart": ""
 } 

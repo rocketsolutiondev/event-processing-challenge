@@ -3,21 +3,26 @@
 ## Architecture Overview
 
 ```
-                   ┌─────────────┐
-                   │  Generator  │
-                   └──────┬──────┘
-                          │
-                          ▼
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐
-│   Postgres  │◄───┤  Subscriber  │◄───┤  Publisher  │
-└─────────────┘    └──────┬───────┘    └─────────────┘
-                          │
-      ┌─────────────┬─────┴────┬─────────────┐
-      ▼             ▼          ▼             ▼
-┌──────────┐  ┌─────────┐ ┌─────────┐  ┌─────────┐
-│ Currency │  │ Player  │ │  Game   │  │  Desc   │
-│ Enricher │  │Enricher │ │Enricher │  │Enricher │
-└──────────┘  └─────────┘ └─────────┘  └─────────┘
+ ┌─────────────┐    ┌─────────────┐
+ │  Generator  │───►│  Publisher  │
+ └─────────────┘    └──────┬──────┘
+                           │
+                           ▼
+ ┌─────────────┐    ┌──────────────┐
+ │   Postgres  │◄───┤  Subscriber  │
+ └─────────────┘    └──────┬───────┘
+                           │
+        ┌─────────────┬─────┴────┬─────────────┬──────────────┐
+        ▼             ▼          ▼             ▼              ▼
+ ┌──────────┐  ┌─────────┐ ┌─────────┐  ┌─────────┐   ┌──────────┐
+ │ Currency │  │ Player  │ │  Game   │  │  Desc   │   │ Metrics  │
+ │ Enricher │  │Enricher │ │Enricher │  │Enricher │   │ Enricher │
+ └──────────┘  └─────────┘ └─────────┘  └─────────┘   └────┬─────┘
+                                                           │
+                                                           ▼
+                                                    ┌──────────┐
+                                                    │ Grafana  │
+                                                    └──────────┘
 ```
 
 ## Database Migrations
@@ -76,9 +81,107 @@ Migrations run automatically when:
 
 #### Currency Enricher
 - Converts amounts to EUR using exchangerate.host API
-- Handles smallest units:
-  - USD/EUR: cents (100 cents = 1.00)
-  - BTC: satoshis (100,000,000 satoshis = 1.00 BTC)
+- Handles currency conversion with high precision
+- Caches rates for 1 minute
+- Rate limited to 1 request/minute
+- Graceful error handling
+
+#### Player Enricher
+- Looks up player data from Postgres
+- No caching (per requirements)
+- Handles missing players gracefully
+- Adds email and last_signed_in_at
+
+#### Description Enricher
+- Generates human-friendly descriptions
+- Currency-specific formatting:
+  - All currencies: 10 decimal places for maximum precision
+- Uses game title mapping
+
+## Quick Start
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Bitstarz-eng/event-processing-challenge.git
+cd event-processing-challenge
+```
+
+2. Build and start all services:
+```bash
+# First build all services
+docker-compose build --no-cache
+
+# Then start everything (includes migrations, subscriber, and publisher)
+docker-compose up -d
+```
+
+This will:
+- Build all required containers
+- Start infrastructure (NATS, PostgreSQL, Prometheus, Grafana)
+- Run database migrations automatically
+- Start both subscriber and publisher services
+- Set up metrics collection
+
+## Manual Setup (Alternative)
+
+For development or debugging, you can run components separately. This is useful when you want to run the subscriber or publisher with local modifications:
+
+## Setup Instructions
+
+1. Start required infrastructure:
+```bash
+# Start only NATS and Postgres (not the app containers)
+docker-compose up -d nats postgres prometheus grafana
+```
+
+2. Run migrations:
+```bash
+# Only needed if you want to run migrations manually
+make migrate
+```
+
+3. Start the subscriber:
+```bash
+# Run subscriber locally for development
+# Make sure the app container is not running to avoid port conflicts
+go run cmd/subscriber/main.go
+```
+
+4. Start the publisher:
+```bash
+# Run publisher locally for development
+# Make sure the app container is not running to avoid port conflicts
+go run cmd/publisher/main.go
+```
+
+Notes: 
+- Manual setup is primarily for development purposes
+- For production use, prefer `docker-compose up -d` which handles everything automatically
+- Cannot run containerized and local versions simultaneously due to port conflicts
+- When switching between containerized and local versions, use `docker-compose down` first
+
+## Testing
+
+The project includes both unit and integration tests:
+
+```bash
+# Run unit tests
+# These test core logic without external dependencies
+go test -v -short ./...
+
+# Run integration tests
+# These test full system with actual database and NATS connections
+go test -v ./...
+```
+
+Key test areas:
+- Currency conversion logic
+- Event enrichment pipeline
+- Data aggregation
+- Metrics collection
+
+#### Currency Enricher
+- Converts amounts to EUR using exchangerate.host API
 - Caches rates for 1 minute
 - Rate limited to 1 request/minute
 - Graceful error handling
@@ -95,38 +198,6 @@ Migrations run automatically when:
   - USD/EUR: 2 decimal places
   - BTC: 3 decimal places
 - Uses game title mapping
-
-## Setup Instructions
-
-1. Start required services:
-```bash
-docker-compose up -d
-```
-
-2. Run migrations:
-```bash
-make migrate
-```
-
-3. Start the subscriber:
-```bash
-go run cmd/subscriber/main.go
-```
-
-4. Start the publisher:
-```bash
-go run cmd/publisher/main.go
-```
-
-## Testing
-
-```bash
-# Run unit tests
-go test -v -short ./...
-
-# Run integration tests
-go test -v ./...
-```
 
 ## Metrics
 
@@ -333,4 +404,9 @@ The system provides metrics visualization through Grafana:
    - Event processing metrics
    - Player statistics
    - System health
-   - Performance metrics 
+   - Performance metrics
+
+4. Raw metrics are available at:
+   - http://localhost:8080/metrics
+   - This endpoint is scraped by Prometheus and used by Grafana
+   - You can inspect raw metrics to understand what data is available 
