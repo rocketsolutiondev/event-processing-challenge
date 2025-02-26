@@ -272,11 +272,11 @@
         "textMode": "auto"
       },
       "title": "Events Per Second",
-      "type": "stat",
+      "type": "timeseries",
       "targets": [
         {
-          "expr": "casino_events_per_second",
-          "legendFormat": "EPS"
+          "expr": "rate(casino_events_processed_total[1m])",
+          "legendFormat": "Events/sec"
         }
       ]
     },
@@ -811,6 +811,39 @@
               "Value #C": "Total Deposits (EUR)"
             }
           }
+        }
+      ]
+    },
+    {
+      "title": "Events by Type",
+      "type": "piechart",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum by (type) (casino_events_by_type_total)",
+          "legendFormat": "{{type}}"
+        }
+      ]
+    },
+    {
+      "title": "Top Players",
+      "type": "bargauge",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "topk(5, sum by (player_id) (casino_events_by_player_total))",
+          "legendFormat": "Player {{player_id}}"
+        }
+      ]
+    },
+    {
+      "title": "Top Games",
+      "type": "table",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "topk(5, sum by (game_id, game_title) (casino_events_by_game_total))",
+          "legendFormat": "{{game_title}}"
         }
       ]
     }

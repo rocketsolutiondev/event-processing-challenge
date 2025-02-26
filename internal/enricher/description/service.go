@@ -8,19 +8,17 @@ import (
 )
 
 type Service struct {
-    gameTitles map[int]string
 }
 
-func New(gameTitles map[int]string) *Service {
-    return &Service{
-        gameTitles: gameTitles,
-    }
+func New() *Service {
+    return &Service{}
 }
 
 func (s *Service) Enrich(ctx context.Context, event *casino.Event) error {
-    gameTitle := s.gameTitles[event.GameID]
-    if gameTitle == "" {
-        gameTitle = fmt.Sprintf("Game %d", event.GameID)
+    // Get game title
+    game, ok := casino.Games[event.GameID]
+    if !ok {
+        game = casino.Game{Title: fmt.Sprintf("Game %d", event.GameID)}
     }
 
     amount := float64(event.Amount) // Use actual amount for all currencies
@@ -29,28 +27,28 @@ func (s *Service) Enrich(ctx context.Context, event *casino.Event) error {
     case "bet":
         if event.HasWon {
             event.Description = fmt.Sprintf("Player %d won %s %.2f in %s", 
-                event.PlayerID, event.Currency, amount, gameTitle)
+                event.PlayerID, event.Currency, amount, game.Title)
         } else {
             event.Description = fmt.Sprintf("Player %d lost %s %.2f in %s",
-                event.PlayerID, event.Currency, amount, gameTitle)
+                event.PlayerID, event.Currency, amount, game.Title)
         }
     case "deposit":
         event.Description = fmt.Sprintf("Player %d deposited %s %.2f at %s",
             event.PlayerID, event.Currency, amount, event.CreatedAt.Format(time.RFC3339))
     case "game_start":
         event.Description = fmt.Sprintf("Player %d started playing %s", 
-            event.PlayerID, gameTitle)
+            event.PlayerID, game.Title)
     case "game_stop":
         event.Description = fmt.Sprintf("Player %d stopped playing %s", 
-            event.PlayerID, gameTitle)
+            event.PlayerID, game.Title)
     }
 
     return nil
 }
 
 func (s *Service) getGameTitle(id int) string {
-    if title, ok := s.gameTitles[id]; ok {
-        return title
+    if title, ok := casino.Games[id]; ok {
+        return title.Title
     }
     return fmt.Sprintf("Game %d", id)
 } 

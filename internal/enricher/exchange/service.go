@@ -156,4 +156,28 @@ func (s *Service) updateRates() error {
 
 	s.lastUpdate = time.Now()
 	return nil
+}
+
+func (s *Service) GetRateFromDB(currency string) (float64, error) {
+	var rate float64
+	err := s.db.QueryRow(`
+		SELECT rate_to_eur 
+		FROM exchange_rates 
+		WHERE currency = $1 AND 
+			  updated_at > NOW() - INTERVAL '24 hours'
+	`, currency).Scan(&rate)
+	// ...
+	return rate, err
+}
+
+func (s *Service) SaveRateToDB(currency string, rate float64) error {
+	_, err := s.db.Exec(`
+		INSERT INTO exchange_rates (currency, rate_to_eur) 
+		VALUES ($1, $2)
+		ON CONFLICT (currency) DO UPDATE 
+		SET rate_to_eur = EXCLUDED.rate_to_eur,
+			updated_at = NOW()
+	`, currency, rate)
+	// ...
+	return err
 } 

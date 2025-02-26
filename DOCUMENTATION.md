@@ -20,6 +20,45 @@
 └──────────┘  └─────────┘ └─────────┘  └─────────┘
 ```
 
+## Database Migrations
+
+The system uses automatic database migrations that run when the database container starts up. The migrations are handled through Docker Compose's initialization system.
+
+### Migration Structure
+```
+db/
+└── migrations/
+    ├── 00-init.sh           # Shell script that executes migrations in order
+    ├── 00001.create_base.sql    # Creates initial tables (players, etc.)
+    └── 00002.exchange_rates.sql # Creates exchange rates table
+```
+
+### How It Works
+1. The `database` service in docker-compose.yml mounts the migrations directory:
+   ```yaml
+   volumes:
+     - "./db/migrations:/docker-entrypoint-initdb.d"
+   ```
+
+2. PostgreSQL's Docker image automatically executes files in `/docker-entrypoint-initdb.d` in alphabetical order
+
+3. The `00-init.sh` script runs first and executes the SQL migrations in sequence:
+   ```bash
+   cd /docker-entrypoint-initdb.d
+   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f 00001.create_base.sql
+   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -f 00002.exchange_rates.sql
+   ```
+
+### Migration Files
+- `00001.create_base.sql`: Creates initial tables for player data
+- `00002.exchange_rates.sql`: Creates exchange rates table with initial currency data
+
+### Execution
+Migrations run automatically when:
+- First time database container starts
+- After volume is removed (`docker-compose down -v`)
+- When database container is recreated
+
 ## Components
 
 ### Publisher

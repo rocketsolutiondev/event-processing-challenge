@@ -30,15 +30,7 @@ func main() {
     }
     defer playerEnricher.Close()
 
-    // Game titles mapping
-    gameTitles := map[int]string{
-        100: "Book of Dead",
-        101: "Starburst",
-        102: "Gonzo's Quest",
-        103: "Dead or Alive",
-        104: "Fire Joker",
-    }
-    descriptionEnricher := description.New(gameTitles)
+    descriptionEnricher := description.New()
 
     // Create and start subscriber
     sub, err := subscriber.New(cfg.NATSURL, playerEnricher, descriptionEnricher)

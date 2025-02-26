@@ -146,6 +146,24 @@ func (s *Service) Start(ctx context.Context) error {
         metrics.IncrementEventsEnriched()
         metrics.AddProcessingTime(time.Since(start))
         log.Println(string(data))
+
+        // Increment total events
+        metrics.EventsProcessed.Inc()
+
+        // Increment by type
+        metrics.EventsByType.WithLabelValues(event.Type).Inc()
+
+        // Increment by player
+        metrics.EventsByPlayer.WithLabelValues(fmt.Sprintf("%d", event.PlayerID)).Inc()
+
+        // Increment by game
+        if event.GameID > 0 {
+            game := casino.Games[event.GameID]
+            metrics.EventsByGame.WithLabelValues(
+                fmt.Sprintf("%d", event.GameID),
+                game.Title,
+            ).Inc()
+        }
     })
     if err != nil {
         return fmt.Errorf("failed to subscribe: %w", err)

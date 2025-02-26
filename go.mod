@@ -2,8 +2,6 @@ module github.com/Bitstarz-eng/event-processing-challenge
 
 go 1.21
 
-toolchain go1.22.5
-
 require (
 	github.com/nats-io/nats.go v1.31.0
 	golang.org/x/net v0.33.0

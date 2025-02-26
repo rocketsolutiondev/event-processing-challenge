@@ -52,4 +52,19 @@ var (
 		Name: "casino_service_up",
 		Help: "Service health status (1 = healthy, 0 = unhealthy)",
 	})
+
+	EventsByType = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "casino_events_by_type_total",
+		Help: "The total number of events by type",
+	}, []string{"type"})
+
+	EventsByPlayer = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "casino_events_by_player_total",
+		Help: "The total number of events by player",
+	}, []string{"player_id"})
+
+	EventsByGame = promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "casino_events_by_game_total",
+		Help: "The total number of events by game",
+	}, []string{"game_id", "game_title"})
 ) 
